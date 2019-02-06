@@ -1,0 +1,26 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t negi007/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run negi007/react-test npm test -- --cover
+
+after_success:
+  - docker build -t negi007/multi-client ./client
+  - docker build -t negi007/multi-nginx ./nginx
+  - docker build -t negi007/multi-server./server
+  - docker build -t negi007/multi-worker./worker
+
+  # Log in to docker CLI
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  # Take all build images and push to docker Hub
+
+  - docker push negi007/multi-client
+  - docker push negi007/multi-nginx
+  - docker push negi007/multi-server
+  - docker push negi007/multi-worker
